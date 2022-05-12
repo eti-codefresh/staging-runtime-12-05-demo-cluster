@@ -1,0 +1,232 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app: cap-app-proxy
+  name: cap-app-proxy
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app: cap-app-proxy
+  name: cap-app-proxy
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  - configmap
+  verbs:
+  - get
+  - create
+  - delete
+  - update
+  - patch
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - services
+  verbs:
+  - get
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app: cap-app-proxy
+  name: cap-app-proxy
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: cap-app-proxy
+subjects:
+- kind: ServiceAccount
+  name: cap-app-proxy
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cap-app-proxy-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: argo-server-cluster-role
+subjects:
+- kind: ServiceAccount
+  name: cap-app-proxy
+  namespace: default
+---
+apiVersion: v1
+data:
+  argoCdUsername: admin
+kind: ConfigMap
+metadata:
+  name: cap-app-proxy-cm
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: cap-app-proxy
+  name: cap-app-proxy
+spec:
+  ports:
+  - name: http
+    port: 3017
+    protocol: TCP
+    targetPort: http
+  selector:
+    app: cap-app-proxy
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: cap-app-proxy
+  name: cap-app-proxy
+spec:
+  selector:
+    matchLabels:
+      app: cap-app-proxy
+  template:
+    metadata:
+      labels:
+        app: cap-app-proxy
+    spec:
+      containers:
+      - env:
+        - name: ARGO_CD_URL
+          valueFrom:
+            configMapKeyRef:
+              key: argoCdUrl
+              name: cap-app-proxy-cm
+              optional: true
+        - name: ARGO_CD_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              key: argoCdUsername
+              name: cap-app-proxy-cm
+              optional: true
+        - name: ARGO_CD_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: argocd-initial-admin-secret
+        - name: ARGO_WORKFLOWS_INSECURE
+          valueFrom:
+            configMapKeyRef:
+              key: argoWorkflowsInsecure
+              name: cap-app-proxy-cm
+              optional: true
+        - name: ARGO_WORKFLOWS_URL
+          valueFrom:
+            configMapKeyRef:
+              key: argoWorkflowsUrl
+              name: cap-app-proxy-cm
+              optional: true
+        - name: CF_HOST
+          valueFrom:
+            configMapKeyRef:
+              key: cfHost
+              name: cap-app-proxy-cm
+              optional: true
+        - name: CORS
+          valueFrom:
+            configMapKeyRef:
+              key: cors
+              name: cap-app-proxy-cm
+              optional: true
+        - name: ENV
+          valueFrom:
+            configMapKeyRef:
+              key: env
+              name: cap-app-proxy-cm
+              optional: true
+        - name: GRAPHQL_DEBUG
+          valueFrom:
+            configMapKeyRef:
+              key: graphqlDebug
+              name: cap-app-proxy-cm
+              optional: true
+        - name: GRAPHQL_PLAYGROUND
+          valueFrom:
+            configMapKeyRef:
+              key: graphqlPlayground
+              name: cap-app-proxy-cm
+              optional: true
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              key: port
+              name: cap-app-proxy-cm
+              optional: true
+        - name: REPOS_DIR
+          valueFrom:
+            configMapKeyRef:
+              key: reposDir
+              name: cap-app-proxy-cm
+              optional: true
+        - name: RUNTIME_NAME
+          valueFrom:
+            configMapKeyRef:
+              key: runtimeName
+              name: cap-app-proxy-cm
+              optional: true
+        - name: RUNTIME_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: token
+              name: codefresh-token
+        - name: RUNTIME_STORE_IV
+          valueFrom:
+            secretKeyRef:
+              key: encryptionIV
+              name: codefresh-token
+              optional: true
+        - name: STORE_BACKEND
+          valueFrom:
+            configMapKeyRef:
+              key: storeBackend
+              name: cap-app-proxy-cm
+              optional: true
+        - name: STRIP_PREFIX
+          valueFrom:
+            configMapKeyRef:
+              key: stripPrefix
+              name: cap-app-proxy-cm
+              optional: true
+        image: quay.io/codefresh/cap-app-proxy:CR-11110
+        imagePullPolicy: Always
+        livenessProbe:
+          failureThreshold: 10
+          httpGet:
+            path: /api/healthz
+            port: http
+          initialDelaySeconds: 10
+          timeoutSeconds: 10
+        name: cap-app-proxy
+        ports:
+        - containerPort: 80
+          name: http
+        readinessProbe:
+          httpGet:
+            path: /api/readyz
+            port: http
+          initialDelaySeconds: 10
+          timeoutSeconds: 10
+        resources:
+          limits:
+            cpu: "2"
+            memory: 2048Mi
+          requests:
+            cpu: 100m
+            memory: 256Mi
+      serviceAccountName: cap-app-proxy
