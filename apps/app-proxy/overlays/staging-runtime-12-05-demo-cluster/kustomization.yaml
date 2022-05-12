@@ -12,3 +12,4 @@ namespace: staging-runtime-12-05-demo-cluster
 resources:
 - ../../base
 - ingress.yaml
+- https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.17.5/controller.yaml
