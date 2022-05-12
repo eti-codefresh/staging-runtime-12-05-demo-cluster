@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  annotations:
-    argocd.argoproj.io/sync-options: Prune=false
-  creationTimestamp: null
-  name: staging-runtime-12-05-demo-cluster
-spec: {}
-status: {}
