@@ -13,3 +13,7 @@ resources:
 - ../../base
 - ingress.yaml
 - https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.17.5/controller.yaml
+images:
+  - name: quay.io/codefresh/cap-app-proxy
+    newName: quay.io/codefresh/cap-app-proxy
+    newTag: CR-11110-test
