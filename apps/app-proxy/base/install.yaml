@@ -205,7 +205,7 @@ spec:
               key: stripPrefix
               name: cap-app-proxy-cm
               optional: true
-        image: quay.io/codefresh/cap-app-proxy:CR-11110
+        image: quay.io/codefresh/cap-app-proxy:CR-11110-test4
         imagePullPolicy: Always
         livenessProbe:
           failureThreshold: 10
