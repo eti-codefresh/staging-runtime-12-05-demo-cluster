@@ -16,4 +16,4 @@ resources:
 images:
   - name: quay.io/codefresh/cap-app-proxy
     newName: quay.io/codefresh/cap-app-proxy
-    newTag: 1.1252.0-CR-11110-7e235e6
+    newTag: 1.1252.0-CR-11110-9802d5d
